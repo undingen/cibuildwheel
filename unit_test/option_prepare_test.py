@@ -11,7 +11,10 @@ import pytest
 from cibuildwheel import linux, util
 from cibuildwheel.__main__ import main
 
-ALL_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310", "pp37", "pp38"}
+CP_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310"}
+PP_IDS = {"pp37", "pp38"}
+PT_IDS = {"pt38"}
+ALL_IDS = CP_IDS | PP_IDS | PT_IDS
 
 
 @pytest.fixture
@@ -65,7 +68,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
     assert kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS}
+    assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS - PT_IDS}
 
     kwargs = build_on_docker.call_args_list[2][1]
     assert "quay.io/pypa/musllinux_1_1_x86_64" in kwargs["docker"]["docker_image"]
@@ -74,7 +77,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-musllinux_x86_64" for x in ALL_IDS for x in ALL_IDS if "pp" not in x
+        f"{x}-musllinux_x86_64" for x in CP_IDS
     }
 
     kwargs = build_on_docker.call_args_list[3][1]
@@ -83,7 +86,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
     assert kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-musllinux_i686" for x in ALL_IDS if "pp" not in x}
+    assert identifiers == {f"{x}-musllinux_i686" for x in CP_IDS}
 
 
 def test_build_with_override_launches(mock_build_docker, monkeypatch, tmp_path):
@@ -133,7 +136,7 @@ before-all = "true"
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-manylinux_x86_64" for x in ALL_IDS - {"cp36", "cp310", "pp37", "pp38"}
+        f"{x}-manylinux_x86_64" for x in ALL_IDS - {"cp36", "cp310", "pp37", "pp38", "pt38"}
     }
     assert kwargs["options"].build_options("cp37-manylinux_x86_64").before_all == ""
 
@@ -146,6 +149,7 @@ before-all = "true"
         "cp310-manylinux_x86_64",
         "pp37-manylinux_x86_64",
         "pp38-manylinux_x86_64",
+        "pt38-manylinux_x86_64",
     }
 
     kwargs = build_on_docker.call_args_list[3][1]
@@ -154,7 +158,7 @@ before-all = "true"
     assert kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS}
+    assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS - PT_IDS}
 
     kwargs = build_on_docker.call_args_list[4][1]
     assert "quay.io/pypa/musllinux_1_1_x86_64" in kwargs["docker"]["docker_image"]
@@ -163,7 +167,7 @@ before-all = "true"
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-musllinux_x86_64" for x in ALL_IDS for x in ALL_IDS if "pp" not in x
+        f"{x}-musllinux_x86_64" for x in CP_IDS
     }
 
     kwargs = build_on_docker.call_args_list[5][1]
@@ -172,4 +176,4 @@ before-all = "true"
     assert kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-musllinux_i686" for x in ALL_IDS if "pp" not in x}
+    assert identifiers == {f"{x}-musllinux_i686" for x in CP_IDS}

@@ -24,7 +24,7 @@ def test_linux_container_split(tmp_path: Path, monkeypatch):
                 manylinux-x86_64-image = "normal_docker_image"
                 manylinux-i686-image = "normal_docker_image"
                 build = "*-manylinux_x86_64"
-                skip = "pp*"
+                skip = "pp* pt*"
                 archs = "x86_64 i686"
 
                 [[tool.cibuildwheel.overrides]]
